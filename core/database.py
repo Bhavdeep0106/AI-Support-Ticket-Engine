@@ -1,6 +1,5 @@
 import sqlite3
 from datetime import datetime
-import pytz
 import os
 
 DATABASE_PATH = "data/tickets.db"
@@ -106,7 +105,7 @@ def save_ticket(
             int(decision["escalated"]),
             decision["reason"],
 
-            datetime.now(pytz.timezone("Asia/Kolkata")).isoformat()
+            datetime.utcnow().isoformat()
         )
     )
 
