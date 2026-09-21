@@ -70,13 +70,16 @@ Do not include explanations outside the JSON.
 """
 
 
-def analyze_ticket(ticket_text: str) -> dict:
+def analyze_ticket(
+    ticket_text: str,
+    usage_limit_enabled: bool = True
+) -> dict:
 
-    # Application-level safety check
-    if not can_make_request():
+    if usage_limit_enabled and not can_make_request():
         raise RuntimeError(
             "AI usage limit reached. "
-            "Please try again later."
+            "Disable the AI Usage Limit toggle "
+            "if you want to continue."
         )
 
     try:

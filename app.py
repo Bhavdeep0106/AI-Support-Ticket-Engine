@@ -20,7 +20,22 @@ st.title("🎫 AI Support Ticket Decision Engine")
 
 usage = get_usage_status()
 
+# --------------------------------------------------
+# Sidebar: AI Usage
+# --------------------------------------------------
+
 st.sidebar.header("AI Usage")
+
+usage_limit_enabled = st.sidebar.toggle(
+    "Enable AI Usage Limit",
+    value=True,
+    help=(
+        "When enabled, the application blocks AI requests "
+        "when the local safety threshold is reached."
+    )
+)
+
+usage = get_usage_status()
 
 st.sidebar.metric(
     "Tokens Used",
@@ -36,23 +51,34 @@ st.sidebar.progress(
     min(usage["percentage"] / 100, 1.0)
 )
 
-if usage["status"] == "normal":
+st.sidebar.caption(
+    f"{usage['percentage']:.2f}% of application safety limit used"
+)
 
-    st.sidebar.success(
-        f"Usage: {usage['percentage']:.2f}%"
-    )
+if usage_limit_enabled:
 
-elif usage["status"] == "warning":
+    if usage["status"] == "warning":
 
-    st.sidebar.warning(
-        f"Usage approaching safety limit: "
-        f"{usage['percentage']:.2f}%"
-    )
+        st.sidebar.warning(
+            "AI usage is approaching the application safety limit."
+        )
+
+    elif usage["status"] == "blocked":
+
+        st.sidebar.error(
+            "AI requests are blocked by the application limit."
+        )
+
+    else:
+
+        st.sidebar.success(
+            "AI usage limit is enabled."
+        )
 
 else:
 
-    st.sidebar.error(
-        "AI requests are temporarily disabled."
+    st.sidebar.warning(
+        "AI usage limit is disabled."
     )
 
 st.write(
@@ -100,7 +126,10 @@ if st.button("Analyze Ticket", type="primary"):
         with st.spinner("Analyzing ticket..."):
 
             try:
-                analysis = analyze_ticket(ticket_text)
+                analysis = analyze_ticket(
+                    ticket_text,
+                    usage_limit_enabled=usage_limit_enabled
+                )
                 decision = make_decision(
                     category=analysis["category"],
                     urgency=analysis["urgency"],
